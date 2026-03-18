@@ -4,6 +4,8 @@ import './App.css'
 import Search from './components/Search.jsx'
 import Customize from './components/Customize.jsx'
 import Pitch from './components/Pitch.jsx'
+import PlayerManager from './components/PlayerManager.jsx'
+import PlayerService from './services/PlayerService'
 import fonts from "./data/fonts.js"
 
 // Import dependencies
@@ -17,15 +19,19 @@ const logoPlaceholder = require("./data/placeholders/logo.svg")
 export default class App extends React.Component {
   constructor(props) {
     super(props)
+    // Merge built-in players with custom players from localStorage
+    const builtInPlayers = require('./data/index.json')
+    const customPlayers = PlayerService.getAll()
     this.state = {
-      playersIndex: require('./data/index.json'),
+      playersIndex: { ...builtInPlayers, ...customPlayers },
       activeTactic: require('./tactics/4-3-3.json'),
       activeTacticName: "4-3-3",
       fileBackups: {},
       selectedPlayers: [],
       results: [],
       downloadStatus: "disabled",
-      downloadLink: ""
+      downloadLink: "",
+      showPlayerManager: false
     }
   }
 
@@ -129,9 +135,12 @@ export default class App extends React.Component {
     this.setState({ fileBackups: newBackups })
   }
 
-  getPlayerFile = playerFilePath => {
-    //const file = require(`${playerFilePath}`)
-    return require(`${playerFilePath}`)
+  getPlayerFile = playerFilePathOrObject => {
+    // Custom players are stored as objects directly in the index
+    if (typeof playerFilePathOrObject === 'object' && playerFilePathOrObject !== null) {
+      return playerFilePathOrObject
+    }
+    return require(`${playerFilePathOrObject}`)
   }
 
   selectPlayer = playerObject => {
@@ -190,9 +199,33 @@ export default class App extends React.Component {
     document.querySelector(".EditLineupName").blur()
   }
 
+  togglePlayerManager = () => {
+    this.setState(prev => ({ showPlayerManager: !prev.showPlayerManager }))
+  }
+
+  onCustomPlayersChanged = (customPlayers) => {
+    // Re-merge built-in + custom players
+    const builtInPlayers = require('./data/index.json')
+    this.setState({
+      playersIndex: { ...builtInPlayers, ...customPlayers }
+    })
+  }
+
   render() {
     return(
       <div className="App">
+        <button
+          className="PM-toggle"
+          onClick={this.togglePlayerManager}
+          title={this.state.showPlayerManager ? "Cerrar panel" : "Gestionar jugadores"}
+        >
+          {this.state.showPlayerManager ? '✕' : '⚽'}
+        </button>
+        {this.state.showPlayerManager && (
+          <PlayerManager
+            onPlayersChanged={this.onCustomPlayersChanged}
+          />
+        )}
         <div className="Settings">
           <Search
             tactic={this.state.activeTactic}
