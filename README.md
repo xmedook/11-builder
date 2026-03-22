@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🪲 Escarabajos Franco 🇫🇷 (Nexo Football Team)
 
-## Getting Started
+Aplicación web Full-Stack desarrollada para la gestión integral de un equipo de fútbol amateur. Creada a partir del proyecto `11-builder` y completamente migrada a un framework moderno.
 
-First, run the development server:
+## 🚀 Tecnología
+- **Framework Frontend & Backend**: [Next.js 15+](https://nextjs.org/) (App Router, Server Actions)
+- **Base de Datos**: [SQLite](https://sqlite.org/) (usando `better-sqlite3`)
+- **Estilos**: Vanilla CSS moderno con glassmorphism, degradados y *dark mode*.
+- **Despliegue y Hosting**: Instancia Web Service en Render con disco montado.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 👥 Roles y Flujos de Usuario
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 1. Administrador / Coach
+- **Acceso:** Oculto mediante el parámetro secreto en la URL: `/?coach=secret-coach`
+- **Funciones:**
+  - **Plantilla:** Crear, gestionar y borrar la lista total de jugadores.
+  - **Partido:** Programar el "Siguiente Partido" frente a un rival en una fecha determinada.
+  - **Asistencia (RSVP):** Seguir el estado de confirmaciones en tiempo real de toda la plantilla.
+  - **Cancha y Alineación:** Panel de gestión para mover jugadores confirmados desde la "Banca" hacia posiciones en la "Cancha".
+  - **Recuperación:** Desvincular celulares (cookies) de los jugadores para que puedan volver a hacer *login* si pierden su teléfono.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### 2. Jugador
+- **Acceso:** Vía dispositivo único vinculado (Cookie de 1 año sin contraseñas).
+- **Funciones:**
+  - Explorar la lista y pulsar en "Soy Yo" al lado de su nombre para vincular el celular.
+  - Confirmar asistencia seleccionando si van a jugar o no. (Los que confirman que asisten, entran a la Banca del Coach listos para jugar).
+  - Editar su Perfil: Renombrar su "Nombre" y "Apellido".
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Visitante (Público general)
+- **Acceso:** Enlace estándar de la aplicación.
+- **Funciones:**
+  - Visibilidad total en modo lectura. Pueden ver la fecha del siguiente encuentro, los jugadores y cómo dibujó la alineación el Coach en la cancha interactiva.
 
-## Learn More
+## 💾 Persistencia de Datos
+El proyecto implementa un backend integrado que controla el archivo `database.sqlite` (lite-db nativa).
+En entornos de producción serverless la base de datos es efímera, por lo cual se despliega en Render con un **Persistent Disk**.
+Mediante la variable de entorno `DB_PATH=/data/database.sqlite`, el sistema sabe que debe modificar la información en el disco persistente que nunca se formatea para que ni el Coach ni los Jugadores pierdan los datos.
 
-To learn more about Next.js, take a look at the following resources:
+## 💻 Desarrollo Local (Dev Mode)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Para probar la app en tu propia computadora:
+1. Instalar dependencias necesarias:
+   ```bash
+   npm install
+   ```
+2. Arrancar el servidor de Next.js:
+   ```bash
+   npm run dev
+   ```
+3. Dirigirse al dominio en el puerto 3000 con el token de administrador:
+   [http://localhost:3000/?coach=secret-coach](http://localhost:3000/?coach=secret-coach)
