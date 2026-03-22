@@ -51,10 +51,11 @@ export async function addPlayer(formData, pin) {
   const lastName     = formData.get('last_name');
   const position     = formData.get('position') || '';
   const jerseyNumber = formData.get('jersey_number') ? parseInt(formData.get('jersey_number'), 10) : null;
+  const photoUrl     = formData.get('photo_url') || null;
 
   db.prepare(
-    `INSERT INTO players (first_name, last_name, position, jersey_number) VALUES (?, ?, ?, ?)`
-  ).run(firstName, lastName, position, jerseyNumber);
+    `INSERT INTO players (first_name, last_name, position, jersey_number, photo_url) VALUES (?, ?, ?, ?, ?)`
+  ).run(firstName, lastName, position, jerseyNumber, photoUrl);
   revalidatePath('/');
 }
 
@@ -66,10 +67,11 @@ export async function updatePlayer(playerId, formData, pin) {
   const lastName     = formData.get('last_name');
   const position     = formData.get('position') || '';
   const jerseyNumber = formData.get('jersey_number') ? parseInt(formData.get('jersey_number'), 10) : null;
+  const photoUrl     = formData.get('photo_url') !== null ? (formData.get('photo_url') || null) : undefined;
 
   db.prepare(
-    `UPDATE players SET first_name = ?, last_name = ?, position = ?, jersey_number = ? WHERE id = ?`
-  ).run(firstName, lastName, position, jerseyNumber, playerId);
+    `UPDATE players SET first_name = ?, last_name = ?, position = ?, jersey_number = ?, photo_url = COALESCE(?, photo_url) WHERE id = ?`
+  ).run(firstName, lastName, position, jerseyNumber, photoUrl, playerId);
   revalidatePath('/');
 }
 
