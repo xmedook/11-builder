@@ -53,9 +53,9 @@ export default function CoachDashboard({ players, nextMatch, coachToken }) {
           )}
           
           <form action={(data) => createOrUpdateMatch(data, coachToken)} style={{ marginTop: '20px' }}>
-            <input type="date" name="date" required className="input-field" />
+            <input type="date" name="date" required className="input-field" style={{ colorScheme: 'dark' }} />
             <input type="text" name="opponent" required placeholder="Nombre del rival" className="input-field" />
-            <button type="submit" className="btn btn-primary">Guardar Partido</button>
+            <button type="submit" className="btn btn-primary btn-block">Guardar Partido</button>
           </form>
         </div>
 
