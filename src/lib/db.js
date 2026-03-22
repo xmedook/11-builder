@@ -15,6 +15,7 @@ db.exec(`
     last_name TEXT NOT NULL,
     position TEXT,
     photo_url TEXT,
+    jersey_number INTEGER UNIQUE,
     device_id TEXT
   );
 
@@ -44,6 +45,22 @@ db.exec(`
     FOREIGN KEY (match_id) REFERENCES matches(id),
     FOREIGN KEY (player_id) REFERENCES players(id)
   );
+
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
 `);
+
+// Agregar jersey_number si no existe (migración segura para DBs existentes)
+try {
+  db.exec(`ALTER TABLE players ADD COLUMN jersey_number INTEGER UNIQUE`);
+} catch (_) { /* columna ya existe */ }
+
+// PIN del coach por defecto: 1234
+const existingPin = db.prepare(`SELECT value FROM settings WHERE key = 'coach_pin'`).get();
+if (!existingPin) {
+  db.prepare(`INSERT INTO settings (key, value) VALUES ('coach_pin', '1234')`).run();
+}
 
 export default db;

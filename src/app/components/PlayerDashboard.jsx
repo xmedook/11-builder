@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { updatePlayerProfile, submitRSVP } from '../actions';
 import Lineup from './Lineup';
 
-export default function PlayerDashboard({ currentPlayer, nextMatch, players }) {
+export default function PlayerDashboard({ currentPlayer, nextMatch, players, onLogout }) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ 
     first_name: currentPlayer.first_name, 
@@ -24,9 +24,12 @@ export default function PlayerDashboard({ currentPlayer, nextMatch, players }) {
 
   return (
     <div className="animate-in">
-      <div className="glass-panel" style={{ marginBottom: '24px' }}>
-        <h2>👟 Perfil de Jugador</h2>
-        <p>Has ingresado como: <strong>{currentPlayer.first_name} {currentPlayer.last_name}</strong></p>
+      <div className="glass-panel" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h2 style={{ marginBottom: '4px' }}>👟 {currentPlayer.first_name} {currentPlayer.last_name}</h2>
+          {currentPlayer.jersey_number && <p style={{ color: 'var(--primary-color)', fontWeight: 600 }}>Dorsal #{currentPlayer.jersey_number}</p>}
+        </div>
+        <button className="btn btn-danger" style={{ fontSize: '13px' }} onClick={onLogout}>Cerrar sesión</button>
         
         {isEditing ? (
           <form onSubmit={handleSaveProfile} style={{ marginTop: '16px' }}>
