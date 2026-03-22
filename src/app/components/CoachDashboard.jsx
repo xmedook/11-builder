@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { addPlayer, updatePlayer, createOrUpdateMatch, deletePlayer, resetPlayerDorsal, updateCoachPin } from '../actions';
+import { addPlayer, updatePlayer, createOrUpdateMatch, deletePlayer, resetPlayerDorsal, updateCoachPin, submitRSVP } from '../actions';
 import PlayerList from './PlayerList';
 import Lineup from './Lineup';
 
@@ -77,16 +77,41 @@ export default function CoachDashboard({ players, nextMatch, coachPin, onLogout 
             <div>
               <p><strong>Rival:</strong> {nextMatch.opponent}</p>
               <p><strong>Fecha:</strong> {nextMatch.date}</p>
-              <h4 style={{ marginTop: '12px' }}>Asistencia:</h4>
+              <h4 style={{ marginTop: '12px', marginBottom: '8px' }}>
+                Asistencia — {nextMatch.attendance?.filter(a => a.status === 'yes').length ?? 0} confirmados
+              </h4>
               <ul style={{ listStyle: 'none', padding: 0, marginBottom: '16px' }}>
                 {players.map(p => {
                   const rsvp = nextMatch.attendance?.find(a => a.player_id === p.id);
+                  const status = rsvp?.status;
                   return (
-                    <li key={p.id} style={{ padding: '4px 0', fontSize: '14px' }}>
-                      <span style={{ marginRight: '6px' }}>
-                        {rsvp?.status === 'yes' ? '✅' : rsvp?.status === 'no' ? '❌' : '⏳'}
+                    <li key={p.id} style={{ padding: '6px 0', borderBottom: '1px solid var(--surface-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '14px', flex: 1 }}>
+                        {p.jersey_number ? <span style={{ color: 'var(--primary-color)', fontWeight: 700, marginRight: '4px' }}>#{p.jersey_number}</span> : null}
+                        {p.first_name} {p.last_name}
                       </span>
-                      {p.jersey_number ? `#${p.jersey_number} ` : ''}{p.first_name} {p.last_name}
+                      <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                        <button
+                          onClick={() => submitRSVP(nextMatch.id, p.id, 'yes')}
+                          title="Confirmar asistencia"
+                          style={{
+                            background: status === 'yes' ? '#16a34a' : 'rgba(255,255,255,0.08)',
+                            border: '1px solid ' + (status === 'yes' ? '#16a34a' : 'var(--surface-border)'),
+                            color: '#fff', borderRadius: '6px', padding: '4px 10px',
+                            cursor: 'pointer', fontSize: '14px', minHeight: '32px'
+                          }}
+                        >✅</button>
+                        <button
+                          onClick={() => submitRSVP(nextMatch.id, p.id, 'no')}
+                          title="Marcar ausencia"
+                          style={{
+                            background: status === 'no' ? '#dc2626' : 'rgba(255,255,255,0.08)',
+                            border: '1px solid ' + (status === 'no' ? '#dc2626' : 'var(--surface-border)'),
+                            color: '#fff', borderRadius: '6px', padding: '4px 10px',
+                            cursor: 'pointer', fontSize: '14px', minHeight: '32px'
+                          }}
+                        >❌</button>
+                      </div>
                     </li>
                   );
                 })}
