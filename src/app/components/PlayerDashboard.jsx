@@ -53,7 +53,8 @@ export default function PlayerDashboard({ currentPlayer, nextMatch, players, onL
           {nextMatch ? (
             <div>
               <p><strong>Rival:</strong> {nextMatch.opponent}</p>
-              <p><strong>Fecha:</strong> {nextMatch.date}</p>
+              <p><strong>Fecha:</strong> {nextMatch.date}{nextMatch.time ? ` — ${nextMatch.time}` : ''}</p>
+              {nextMatch.location && <p><strong>Lugar:</strong> {nextMatch.location}</p>}
               
               <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
                 <h4 style={{ marginBottom: '12px' }}>¿Asistirás?</h4>
