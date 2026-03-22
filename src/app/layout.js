@@ -1,8 +1,14 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Football Manager MVP',
-  description: 'Team lineup and RSVP manager',
+  title: 'Escarabajos Franco',
+  description: 'Organiza tus partidos y alineaciones',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({ children }) {

@@ -8,7 +8,7 @@ export default function PlayerList({ players, isCoach, coachToken }) {
   return (
     <ul style={{ listStyle: 'none', padding: 0 }}>
       {players.map(p => (
-        <li key={p.id} style={{ padding: '12px', borderBottom: '1px solid var(--surface-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <li key={p.id} className="player-row" style={{ padding: '12px', borderBottom: '1px solid var(--surface-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <strong>{p.first_name} {p.last_name}</strong> - <span>{p.position}</span>
             {isCoach && <div style={{ fontSize: '0.8em', color: 'var(--text-secondary)' }}>
@@ -16,7 +16,7 @@ export default function PlayerList({ players, isCoach, coachToken }) {
             </div>}
           </div>
           
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className="player-actions" style={{ display: 'flex', gap: '8px' }}>
             {isCoach && (
               <>
                 {p.device_id && (

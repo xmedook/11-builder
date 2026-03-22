@@ -27,7 +27,7 @@ export default function CoachDashboard({ players, nextMatch, coachToken }) {
         <p>Bienvenido al panel de control. Usa este token secreto en tu URL siempre: <code>?coach=secret-coach</code></p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div className="grid-2">
         {/* Match Settings */}
         <div className="glass-panel">
           <h3>Siguiente Partido</h3>
