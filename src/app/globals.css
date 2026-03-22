@@ -124,6 +124,99 @@ h1 {
   animation: fadeInDown 0.8s ease backwards;
 }
 
+/* ─── Responsive Grid Utilities ─────────────────────────────── */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* ─── Mobile — iPhone (max 768px) ───────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Container */
+  .container {
+    padding: 20px 16px;
+  }
+
+  .header {
+    margin-bottom: 24px;
+  }
+
+  /* Typography */
+  h1 {
+    font-size: 1.6rem;
+    letter-spacing: -0.03em;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+  }
+
+  /* Glass panel — menos padding en mobile */
+  .glass-panel {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  /* Grid: 2 cols → 1 col */
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Botones — touch target mínimo iOS (44px) */
+  .btn {
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 15px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Inputs — font-size 16px previene zoom automático en iOS */
+  .input-field {
+    font-size: 16px;
+    min-height: 44px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+  }
+
+  /* Inline btn-danger pequeños (Desvincular / X) */
+  .btn-danger {
+    min-height: 36px;
+    width: auto;
+    white-space: nowrap;
+  }
+
+  /* Player list — wrap en mobile */
+  .player-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .player-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Lineup cancha — scroll horizontal si es muy ancha */
+  .pitch-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Coach info code snippet */
+  code {
+    word-break: break-all;
+    font-size: 12px;
+  }
+}
+
 /* Animations */
 @keyframes fadeInDown {
   from { opacity: 0; transform: translateY(-20px); }

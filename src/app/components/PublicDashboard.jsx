@@ -11,7 +11,7 @@ export default function PublicDashboard({ players, nextMatch }) {
         <p>Si eres jugador del equipo, busca tu nombre abajo y presiona "Soy Yo" para reclamar tu perfil en este dispositivo.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '24px' }}>
+      <div className="grid-2">
         {/* Next Match */}
         <div className="glass-panel">
           <h3>Próximo Partido</h3>
