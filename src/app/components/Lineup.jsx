@@ -22,23 +22,17 @@ function getDefaultPos(position) {
   return POSITION_DEFAULTS[position] || { x: 50, y: 50 };
 }
 
-// ─── Avatar de jugador ─────────────────────────────────────────────────────
+// ─── Avatar ────────────────────────────────────────────────────────────────
 function PlayerAvatar({ player, size = 40 }) {
   const [imgError, setImgError] = useState(false);
-  const label = player.jersey_number ? `#${player.jersey_number}` : player.first_name[0];
-
+  const label = player.jersey_number ? `#${player.jersey_number}` : (player.first_name?.[0] ?? '?');
   if (player.photo_url && !imgError) {
     return (
       <img
         src={player.photo_url}
         alt={player.first_name}
         onError={() => setImgError(true)}
-        style={{
-          width: size, height: size, borderRadius: '50%',
-          objectFit: 'cover', display: 'block',
-          border: '2px solid rgba(255,255,255,0.8)',
-          flexShrink: 0
-        }}
+        style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', display: 'block', border: '2px solid rgba(255,255,255,0.8)', flexShrink: 0 }}
       />
     );
   }
@@ -48,7 +42,7 @@ function PlayerAvatar({ player, size = 40 }) {
       background: 'linear-gradient(135deg, #2563eb, #1e40af)',
       border: '2px solid rgba(255,255,255,0.8)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontWeight: 700, fontSize: size * 0.35, color: '#fff', flexShrink: 0
+      fontWeight: 700, fontSize: size * 0.35, color: '#fff', flexShrink: 0, userSelect: 'none'
     }}>
       {label}
     </div>
@@ -58,7 +52,10 @@ function PlayerAvatar({ player, size = 40 }) {
 // ─── Componente principal ──────────────────────────────────────────────────
 export default function Lineup({ players, nextMatch, isCoach, coachPin }) {
   const pitchRef = useRef(null);
-  const dragRef = useRef(null); // { playerId, startX%, startY% }
+  // dragRef.current = { playerId } while dragging, null otherwise
+  const dragRef = useRef(null);
+  // lineupRef stays in sync with state to avoid stale closures in event handlers
+  const lineupRef = useRef([]);
 
   if (!nextMatch) return <p style={{ color: 'var(--text-secondary)' }}>Sin partido programado.</p>;
 
@@ -68,85 +65,87 @@ export default function Lineup({ players, nextMatch, isCoach, coachPin }) {
   ).map(p => {
     const l = lineupData.find(l => l.player_id === p.id);
     const def = getDefaultPos(p.position);
-    return {
-      ...p,
-      status: l?.status || 'bench',
-      x_pos: l?.x_pos ?? def.x,
-      y_pos: l?.y_pos ?? def.y,
-    };
+    return { ...p, status: l?.status || 'bench', x_pos: l?.x_pos ?? def.x, y_pos: l?.y_pos ?? def.y };
   });
 
-  const [lineup, setLineup] = useState(confirmedPlayers);
+  const [lineup, _setLineup] = useState(confirmedPlayers);
+  lineupRef.current = lineup;
+
+  // Wrapper que mantiene ref y state sincronizados
+  function setLineup(updater) {
+    _setLineup(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      lineupRef.current = next;
+      return next;
+    });
+  }
 
   const fieldPlayers = lineup.filter(p => p.status === 'field');
   const benchPlayers = lineup.filter(p => p.status === 'bench');
   const fieldCount = fieldPlayers.length;
 
-  // ─── Persistir al servidor ───────────────────────────────────────────────
-  const saveLineup = useCallback(async (newLineup) => {
+  // ─── Persistir ────────────────────────────────────────────────────────
+  async function saveLineup(currentLineup) {
     if (!isCoach || !coachPin) return;
-    const payload = newLineup.map(p => ({
+    const payload = currentLineup.map(p => ({
       player_id: p.id,
       x_pos: Math.round(p.x_pos * 10) / 10,
       y_pos: Math.round(p.y_pos * 10) / 10,
       status: p.status
     }));
     await updateLineup(nextMatch.id, payload, coachPin);
-  }, [isCoach, coachPin, nextMatch.id]);
+  }
 
-  // ─── Banca → Cancha ─────────────────────────────────────────────────────
+  // ─── Banca → Cancha ──────────────────────────────────────────────────
   function moveToField(playerId) {
     if (!isCoach) return;
-    if (fieldCount >= 11) {
+    if (lineupRef.current.filter(p => p.status === 'field').length >= 11) {
       alert('Ya hay 11 jugadores en la cancha. Saca uno primero.');
       return;
     }
-    const def = getDefaultPos(lineup.find(p => p.id === playerId)?.position);
-    const updated = lineup.map(p =>
-      p.id === playerId ? { ...p, status: 'field', x_pos: def.x, y_pos: def.y } : p
-    );
-    setLineup(updated);
-    saveLineup(updated);
+    const player = lineupRef.current.find(p => p.id === playerId);
+    const def = getDefaultPos(player?.position);
+    setLineup(prev => prev.map(p => p.id === playerId ? { ...p, status: 'field', x_pos: def.x, y_pos: def.y } : p));
+    setTimeout(() => saveLineup(lineupRef.current), 0);
   }
 
-  // ─── Cancha → Banca ─────────────────────────────────────────────────────
+  // ─── Cancha → Banca ──────────────────────────────────────────────────
   function moveToBench(playerId) {
     if (!isCoach) return;
-    const updated = lineup.map(p =>
-      p.id === playerId ? { ...p, status: 'bench' } : p
-    );
-    setLineup(updated);
-    saveLineup(updated);
+    setLineup(prev => prev.map(p => p.id === playerId ? { ...p, status: 'bench' } : p));
+    setTimeout(() => saveLineup(lineupRef.current), 0);
   }
 
-  // ─── Drag en la cancha (pointer events — funciona en iOS) ────────────────
-  function onPointerDown(e, playerId) {
+  // ─── DRAG: inicia en el jugador (pointer capture en el PITCH) ────────
+  function onPlayerPointerDown(e, playerId) {
     if (!isCoach) return;
     e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
+    e.stopPropagation();
     dragRef.current = { playerId };
+    // Capturar el puntero en el PITCH para recibir todos los eventos aunque salga del jugador
+    try { pitchRef.current?.setPointerCapture(e.pointerId); } catch (_) {}
   }
 
-  function onPointerMove(e, playerId) {
-    if (!isCoach || !dragRef.current || dragRef.current.playerId !== playerId) return;
-    const pitch = pitchRef.current;
-    if (!pitch) return;
-    const rect = pitch.getBoundingClientRect();
-    const x = Math.max(4, Math.min(96, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.max(4, Math.min(96, ((e.clientY - rect.top) / rect.height) * 100));
-    setLineup(prev =>
-      prev.map(p => p.id === playerId ? { ...p, x_pos: x, y_pos: y } : p)
-    );
+  // ─── DRAG: movimiento (en el PITCH) ──────────────────────────────────
+  function onPitchPointerMove(e) {
+    if (!dragRef.current || !pitchRef.current) return;
+    const rect = pitchRef.current.getBoundingClientRect();
+    const x = Math.max(4, Math.min(96, ((e.clientX - rect.left)  / rect.width)  * 100));
+    const y = Math.max(4, Math.min(96, ((e.clientY - rect.top)   / rect.height) * 100));
+    const { playerId } = dragRef.current;
+    setLineup(prev => prev.map(p => p.id === playerId ? { ...p, x_pos: x, y_pos: y } : p));
   }
 
-  function onPointerUp(e, playerId) {
+  // ─── DRAG: fin (en el PITCH) ─────────────────────────────────────────
+  function onPitchPointerUp(e) {
     if (!dragRef.current) return;
     dragRef.current = null;
-    saveLineup(lineup);
+    saveLineup(lineupRef.current);
   }
 
   return (
     <div>
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
         <h3 style={{ margin: 0 }}>Alineación</h3>
         <span style={{
@@ -157,49 +156,40 @@ export default function Lineup({ players, nextMatch, isCoach, coachPin }) {
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '16px' }}>
+      <div className="grid-2" style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)' }}>
 
         {/* ── PITCH ─────────────────────────────────────────────────── */}
         <div
           ref={pitchRef}
-          className="pitch-container"
+          onPointerMove={onPitchPointerMove}
+          onPointerUp={onPitchPointerUp}
+          onPointerCancel={onPitchPointerUp}
           style={{
             background: 'linear-gradient(180deg, #1a6b1a 0%, #1e7a1e 50%, #1a6b1a 100%)',
             position: 'relative', borderRadius: '8px', overflow: 'hidden',
             aspectRatio: '2/3', width: '100%',
             border: '3px solid rgba(255,255,255,0.6)',
-            userSelect: 'none', touchAction: 'none'
+            userSelect: 'none', touchAction: 'none', cursor: 'default'
           }}
         >
-          {/* Líneas de la cancha */}
+          {/* SVG líneas */}
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} viewBox="0 0 100 150" preserveAspectRatio="none">
-            {/* Línea del medio */}
             <line x1="0" y1="75" x2="100" y2="75" stroke="rgba(255,255,255,0.5)" strokeWidth="0.5"/>
-            {/* Círculo central */}
             <circle cx="50" cy="75" r="12" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.5"/>
-            {/* Punto central */}
             <circle cx="50" cy="75" r="1" fill="rgba(255,255,255,0.5)"/>
-            {/* Área grande superior */}
             <rect x="20" y="0" width="60" height="20" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.5"/>
-            {/* Área chica superior */}
             <rect x="34" y="0" width="32" height="8" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.5"/>
-            {/* Área grande inferior */}
             <rect x="20" y="130" width="60" height="20" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.5"/>
-            {/* Área chica inferior */}
             <rect x="34" y="142" width="32" height="8" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.5"/>
-            {/* Punto penal superior */}
             <circle cx="50" cy="13" r="1" fill="rgba(255,255,255,0.5)"/>
-            {/* Punto penal inferior */}
             <circle cx="50" cy="137" r="1" fill="rgba(255,255,255,0.5)"/>
           </svg>
 
-          {/* Jugadores en cancha */}
+          {/* Jugadores */}
           {fieldPlayers.map(p => (
             <div
               key={p.id}
-              onPointerDown={e => onPointerDown(e, p.id)}
-              onPointerMove={e => onPointerMove(e, p.id)}
-              onPointerUp={e => onPointerUp(e, p.id)}
+              onPointerDown={e => onPlayerPointerDown(e, p.id)}
               onDoubleClick={() => moveToBench(p.id)}
               style={{
                 position: 'absolute',
@@ -209,43 +199,41 @@ export default function Lineup({ players, nextMatch, isCoach, coachPin }) {
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                 cursor: isCoach ? 'grab' : 'default',
                 zIndex: 10,
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))',
+                filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.7))',
+                WebkitUserSelect: 'none', userSelect: 'none',
               }}
-              title={isCoach ? 'Arrastra para mover • Doble click para sacar' : `${p.first_name} ${p.last_name}`}
+              title={isCoach ? 'Arrastra para mover • 2× click → banca' : `${p.first_name} ${p.last_name}`}
             >
               <PlayerAvatar player={p} size={36} />
               <span style={{
                 fontSize: '10px', fontWeight: 700, color: '#fff',
-                background: 'rgba(0,0,0,0.65)', padding: '1px 5px',
-                borderRadius: '4px', marginTop: '3px', whiteSpace: 'nowrap',
-                maxWidth: '64px', overflow: 'hidden', textOverflow: 'ellipsis'
+                background: 'rgba(0,0,0,0.7)', padding: '2px 5px',
+                borderRadius: '4px', marginTop: '3px',
+                whiteSpace: 'nowrap', maxWidth: '70px',
+                overflow: 'hidden', textOverflow: 'ellipsis',
+                pointerEvents: 'none'
               }}>
                 {p.first_name}
               </span>
             </div>
           ))}
 
-          {/* Hint si cancha vacía */}
           {fieldCount === 0 && (
-            <div style={{
-              position: 'absolute', inset: 0, display: 'flex',
-              alignItems: 'center', justifyContent: 'center',
-              color: 'rgba(255,255,255,0.4)', fontSize: '14px', textAlign: 'center', padding: '16px'
-            }}>
-              {isCoach ? 'Toca un jugador de la banca para añadirlo' : 'Alineación pendiente'}
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '13px', textAlign: 'center', padding: '16px', pointerEvents: 'none' }}>
+              {isCoach ? 'Toca un jugador de la banca\npara añadirlo' : 'Alineación pendiente'}
             </div>
           )}
         </div>
 
         {/* ── BANCA ─────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-secondary)', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+          <h4 style={{ margin: '0 0 8px', color: 'var(--text-secondary)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
             Banca ({benchPlayers.length})
           </h4>
 
           {benchPlayers.length === 0 && (
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-              {fieldCount >= 11 ? '✅ 11 titulares completos' : 'Nadie en la banca'}
+              {fieldCount >= 11 ? '✅ 11 titulares' : 'Vacía'}
             </p>
           )}
 
@@ -255,16 +243,15 @@ export default function Lineup({ players, nextMatch, isCoach, coachPin }) {
               onClick={() => moveToField(p.id)}
               disabled={!isCoach}
               style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid var(--surface-border)',
+                background: 'rgba(255,255,255,0.05)', border: '1px solid var(--surface-border)',
                 borderRadius: '8px', padding: '8px 10px',
                 cursor: isCoach ? 'pointer' : 'default',
                 display: 'flex', alignItems: 'center', gap: '8px',
+                color: '#fff', width: '100%', textAlign: 'left',
                 transition: 'background 0.15s',
-                textAlign: 'left', color: '#fff', width: '100%'
               }}
               onMouseEnter={e => isCoach && (e.currentTarget.style.background = 'rgba(37,99,235,0.2)')}
-              onMouseLeave={e => isCoach && (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
             >
               <PlayerAvatar player={p} size={32} />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -273,14 +260,13 @@ export default function Lineup({ players, nextMatch, isCoach, coachPin }) {
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p.position}</div>
               </div>
-              {isCoach && fieldCount < 11 && <span style={{ fontSize: '14px', opacity: 0.6 }}>→</span>}
-              {isCoach && fieldCount >= 11 && <span style={{ fontSize: '12px', opacity: 0.4 }}>🔒</span>}
+              {isCoach && (fieldCount < 11 ? <span style={{ fontSize: '14px', opacity: 0.5 }}>→</span> : <span style={{ fontSize: '12px', opacity: 0.3 }}>🔒</span>)}
             </button>
           ))}
 
           {isCoach && fieldCount > 0 && (
-            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: 1.4 }}>
-              💡 Arrastra en la cancha para reposicionar.<br/>Doble click para enviar a banca.
+            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.5 }}>
+              💡 Arrastra en cancha para reposicionar.<br/>2× toque para enviar a banca.
             </p>
           )}
         </div>
