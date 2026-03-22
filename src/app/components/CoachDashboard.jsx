@@ -6,7 +6,7 @@ import PlayerList from './PlayerList';
 import Lineup from './Lineup';
 
 export default function CoachDashboard({ players, nextMatch, coachPin, onLogout }) {
-  const [formData, setFormData] = useState({ first_name: '', last_name: '', position: 'MC', jersey_number: '' });
+  const [formData, setFormData] = useState({ first_name: '', last_name: '', position: 'MC', jersey_number: '', photo_url: '' });
   const [isAdding, setIsAdding] = useState(false);
   const [showPinChange, setShowPinChange] = useState(false);
   const [pinForm, setPinForm] = useState({ current: '', next: '', confirm: '' });
@@ -19,8 +19,9 @@ export default function CoachDashboard({ players, nextMatch, coachPin, onLogout 
     data.append('last_name', formData.last_name);
     data.append('position', formData.position);
     data.append('jersey_number', formData.jersey_number);
+    data.append('photo_url', formData.photo_url);
     await addPlayer(data, coachPin);
-    setFormData({ first_name: '', last_name: '', position: 'MC', jersey_number: '' });
+    setFormData({ first_name: '', last_name: '', position: 'MC', jersey_number: '', photo_url: '' });
     setIsAdding(false);
   }
 
@@ -151,6 +152,7 @@ export default function CoachDashboard({ players, nextMatch, coachPin, onLogout 
                 </select>
                 <input type="number" min="1" max="99" placeholder="# Dorsal" value={formData.jersey_number} onChange={e => setFormData({...formData, jersey_number: e.target.value})} className="input-field" style={{ marginBottom: 0 }} />
               </div>
+              <input type="url" placeholder="URL de foto (opcional)" value={formData.photo_url} onChange={e => setFormData({...formData, photo_url: e.target.value})} className="input-field" style={{ marginTop: '8px', marginBottom: 0 }} />
               <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '12px' }}>Guardar</button>
             </form>
           )}
