@@ -174,16 +174,12 @@ h1 {
     min-height: 44px;
     padding: 10px 16px;
     font-size: 15px;
-    width: 100%;
-    justify-content: center;
+    /* NO width: 100% — rompe botones dentro de flex rows */
   }
 
-  /* Inputs — font-size 16px previene zoom automático en iOS */
-  .input-field {
-    font-size: 16px;
-    min-height: 44px;
-    padding: 10px 14px;
-    margin-bottom: 12px;
+  /* Botones full-width: solo cuando están solos (no en flex row) */
+  .btn-block {
+    width: 100%;
   }
 
   /* Inline btn-danger pequeños (Desvincular / X) */
@@ -191,6 +187,22 @@ h1 {
     min-height: 36px;
     width: auto;
     white-space: nowrap;
+  }
+
+  /* Inputs — font-size 16px previene zoom automático en iOS */
+  .input-field {
+    font-size: 16px !important;
+    min-height: 44px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+  }
+
+  /* Input date — forzar color visible en iOS dark mode */
+  input[type="date"].input-field {
+    color-scheme: dark;
+    color: #fff;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   /* Player list — wrap en mobile */
