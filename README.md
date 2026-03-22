@@ -1,34 +1,36 @@
-# 11-builder
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-11 builder is an online tool that allows you to create your own football lineup, customize its look, and download it as a ready-to-share image.
+## Getting Started
 
-Try it yourself on [11builder.com](https://11builder.com/).
+First, run the development server:
 
-## Usage
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-| command                         | description                |
-|---------------------------------|----------------------------|
-| `yarn install` or `npm install` | Install dependencies       |
-| `yarn start` or `npm start`     | Start a development server |
-| `yarn build` or `npm run build` | Create a new build         |
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-To serve the `/build` folder:
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-1. `npm install -g serve` if you don't have the `serve` package
-2. `serve -s build`
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Tools used
+## Learn More
 
-* [React.js](https://reactjs.org/), boostraped with [create-react-app](https://github.com/facebook/create-react-app)
-* [Cheerio](https://github.com/cheeriojs/cheerio) to scrape data from [fifaindex.com](https://www.fifaindex.com/fr/players/) (which was itself scraped from [EA Sport's Ultimate Team database](https://www.easports.com/fifa/ultimate-team/fut/database))
-* [Netlify](https://www.netlify.com/) to deploy the app
+To learn more about Next.js, take a look at the following resources:
 
-## Contributing
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-Pull requests are welcome. Here are a few things that you may want to look into:
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-* Any security vulnerability
-* Use external APIs to provide "Share with X" features, such as Imgur, Twitter, Instagram or Reddit.
-* Create an open API to serve the players images and info.
-* Move from CSS to Sass or Styled-Components for easier styling.
-* Start using React hooks
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
