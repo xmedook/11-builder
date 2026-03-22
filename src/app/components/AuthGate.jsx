@@ -181,6 +181,18 @@ export default function AuthGate({ players, nextMatch }) {
   // Authenticated: Player
   if (auth?.role === 'player') {
     const currentPlayer = players.find(p => p.id === auth.playerId) || null;
+    // Si el jugador ya no existe en DB (borrado), limpiar sesión y mostrar público
+    if (!currentPlayer) {
+      localStorage.removeItem(LS_KEY);
+      return (
+        <PublicDashboard
+          players={players}
+          nextMatch={nextMatch}
+          onCoachLogin={() => { setPinError(''); setScreen('coach-pin'); }}
+          onPlayerSelect={handleSelectPlayer}
+        />
+      );
+    }
     return (
       <PlayerDashboard
         currentPlayer={currentPlayer}

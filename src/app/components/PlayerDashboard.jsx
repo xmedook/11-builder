@@ -7,9 +7,12 @@ import Lineup from './Lineup';
 export default function PlayerDashboard({ currentPlayer, nextMatch, players, onLogout }) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ 
-    first_name: currentPlayer.first_name, 
-    last_name: currentPlayer.last_name 
+    first_name: currentPlayer?.first_name || '', 
+    last_name: currentPlayer?.last_name || ''
   });
+
+  // Guard: si por alguna razón llega null, no renderizar
+  if (!currentPlayer) return null;
 
   const rsvp = nextMatch?.attendance?.find(a => a.player_id === currentPlayer.id);
 
@@ -43,7 +46,7 @@ export default function PlayerDashboard({ currentPlayer, nextMatch, players, onL
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '24px' }}>
+      <div className="grid-2">
         {/* Next Match */}
         <div className="glass-panel">
           <h3>Próximo Partido</h3>
