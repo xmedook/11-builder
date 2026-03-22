@@ -27,7 +27,8 @@ export default function PublicDashboard({ players, nextMatch, onCoachLogin, onPl
           {nextMatch ? (
             <>
               <p><strong>Rival:</strong> {nextMatch.opponent}</p>
-              <p><strong>Fecha:</strong> {nextMatch.date}</p>
+              <p><strong>Fecha:</strong> {nextMatch.date}{nextMatch.time ? ` — ${nextMatch.time}` : ''}</p>
+              {nextMatch.location && <p><strong>Lugar:</strong> {nextMatch.location}</p>}
               {confirmed.length > 0 && (
                 <>
                   <h4 style={{ marginTop: '16px' }}>Confirmados ({confirmed.length}):</h4>

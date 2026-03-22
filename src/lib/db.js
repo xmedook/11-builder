@@ -22,6 +22,8 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS matches (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date TEXT NOT NULL,
+    time TEXT,
+    location TEXT,
     opponent TEXT NOT NULL,
     is_active INTEGER DEFAULT 1
   );
@@ -52,6 +54,10 @@ db.exec(`
   );
 `);
 
+// Migración segura: agregar columnas nuevas a matches si no existen
+try { db.exec(`ALTER TABLE matches ADD COLUMN time TEXT`); } catch (_) {}
+try { db.exec(`ALTER TABLE matches ADD COLUMN location TEXT`); } catch (_) {}
+
 // Migración segura: agregar jersey_number si no existe
 // NOTA: SQLite no permite UNIQUE en ALTER TABLE ADD COLUMN
 // Se crea la columna sin constraint y luego el índice por separado
@@ -73,3 +79,33 @@ if (!existingPin) {
 }
 
 export default db;
+
+// ─── Seed inicial de jugadores ────────────────────────────────────────────
+// Solo corre si la tabla está completamente vacía (primer deploy)
+const playerCount = db.prepare('SELECT COUNT(*) as c FROM players').get();
+if (playerCount.c === 0) {
+  const seedPlayers = [
+    { first_name: 'Erik',   last_name: 'Ramírez', position: 'MC',  jersey_number: 1  },
+    { first_name: 'Marte',  last_name: '',         position: 'DC',  jersey_number: 2  },
+    { first_name: 'Jufrad', last_name: '',         position: 'MC',  jersey_number: 3  },
+    { first_name: 'JP',     last_name: '',         position: 'MC',  jersey_number: 4  },
+    { first_name: 'Alex',   last_name: '',         position: 'EI',  jersey_number: 5  },
+    { first_name: 'Andrés', last_name: 'B',        position: 'DC',  jersey_number: 6  },
+    { first_name: 'Jesús',  last_name: 'MC',       position: 'MCO', jersey_number: 7  },
+    { first_name: 'Pichi',  last_name: '',         position: 'SD',  jersey_number: 8  },
+    { first_name: 'Kareem', last_name: '',         position: 'ED',  jersey_number: 9  },
+    { first_name: 'Aldo',   last_name: 'R.',       position: 'ATT', jersey_number: 10 },
+    { first_name: 'Laurent',last_name: '',         position: 'DD',  jersey_number: 11 },
+    { first_name: 'Warren', last_name: '',         position: 'DG',  jersey_number: 12 },
+  ];
+
+  const insertPlayer = db.prepare(
+    `INSERT INTO players (first_name, last_name, position, jersey_number) VALUES (?, ?, ?, ?)`
+  );
+  const seedTx = db.transaction((players) => {
+    for (const p of players) {
+      insertPlayer.run(p.first_name, p.last_name, p.position, p.jersey_number);
+    }
+  });
+  seedTx(seedPlayers);
+}

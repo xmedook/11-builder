@@ -76,7 +76,8 @@ export default function CoachDashboard({ players, nextMatch, coachPin, onLogout 
           {nextMatch ? (
             <div>
               <p><strong>Rival:</strong> {nextMatch.opponent}</p>
-              <p><strong>Fecha:</strong> {nextMatch.date}</p>
+              <p><strong>Fecha:</strong> {nextMatch.date}{nextMatch.time ? ` — ${nextMatch.time}` : ''}</p>
+              {nextMatch.location && <p><strong>Lugar:</strong> {nextMatch.location}</p>}
               <h4 style={{ marginTop: '12px', marginBottom: '8px' }}>
                 Asistencia — {nextMatch.attendance?.filter(a => a.status === 'yes').length ?? 0} confirmados
               </h4>
@@ -121,8 +122,12 @@ export default function CoachDashboard({ players, nextMatch, coachPin, onLogout 
             <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>Sin partido programado.</p>
           )}
           <form action={(data) => createOrUpdateMatch(data, coachPin)}>
-            <input type="date" name="date" required className="input-field" style={{ colorScheme: 'dark' }} />
-            <input type="text" name="opponent" required placeholder="Nombre del rival" className="input-field" />
+            <div className="grid-2" style={{ gap: '8px' }}>
+              <input type="date" name="date" required className="input-field" style={{ colorScheme: 'dark', marginBottom: 0 }} />
+              <input type="time" name="time" className="input-field" style={{ colorScheme: 'dark', marginBottom: 0 }} />
+            </div>
+            <input type="text" name="opponent" required placeholder="Nombre del rival" className="input-field" style={{ marginTop: '8px' }} />
+            <input type="text" name="location" placeholder="Lugar / cancha (opcional)" className="input-field" />
             <button type="submit" className="btn btn-primary btn-block">Guardar Partido</button>
           </form>
         </div>

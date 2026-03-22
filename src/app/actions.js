@@ -113,14 +113,16 @@ export async function createOrUpdateMatch(formData, pin) {
   if (!ok) throw new Error('No autorizado');
 
   const date     = formData.get('date');
+  const time     = formData.get('time') || null;
+  const location = formData.get('location') || null;
   const opponent = formData.get('opponent');
 
   const existing = db.prepare('SELECT id FROM matches WHERE is_active = 1 LIMIT 1').get();
   if (existing) {
-    db.prepare('UPDATE matches SET date = ?, opponent = ? WHERE id = ?')
-      .run(date, opponent, existing.id);
+    db.prepare('UPDATE matches SET date = ?, time = ?, location = ?, opponent = ? WHERE id = ?')
+      .run(date, time, location, opponent, existing.id);
   } else {
-    db.prepare('INSERT INTO matches (date, opponent) VALUES (?, ?)').run(date, opponent);
+    db.prepare('INSERT INTO matches (date, time, location, opponent) VALUES (?, ?, ?, ?)').run(date, time, location, opponent);
   }
   revalidatePath('/');
 }
