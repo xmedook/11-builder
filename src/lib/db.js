@@ -52,10 +52,19 @@ db.exec(`
   );
 `);
 
-// Agregar jersey_number si no existe (migración segura para DBs existentes)
+// Migración segura: agregar jersey_number si no existe
+// NOTA: SQLite no permite UNIQUE en ALTER TABLE ADD COLUMN
+// Se crea la columna sin constraint y luego el índice por separado
 try {
-  db.exec(`ALTER TABLE players ADD COLUMN jersey_number INTEGER UNIQUE`);
-} catch (_) { /* columna ya existe */ }
+  db.exec(`ALTER TABLE players ADD COLUMN jersey_number INTEGER`);
+} catch (_) { /* columna ya existe — ignorar */ }
+
+// Índice único (permite múltiples NULL, solo restringe valores reales)
+db.exec(`
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_players_jersey
+  ON players(jersey_number)
+  WHERE jersey_number IS NOT NULL
+`);
 
 // PIN del coach por defecto: 1234
 const existingPin = db.prepare(`SELECT value FROM settings WHERE key = 'coach_pin'`).get();
