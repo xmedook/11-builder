@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { updateLineup } from '../actions';
 
-export default function Lineup({ players, nextMatch, isCoach, coachToken }) {
+export default function Lineup({ players, nextMatch, isCoach, coachPin }) {
   if (!nextMatch) return <p>No hay partido programado para ver la alineación.</p>;
 
   // Merge player data with lineup data
@@ -28,7 +28,7 @@ export default function Lineup({ players, nextMatch, isCoach, coachToken }) {
     
     // Save to server
     const payload = updated.map(p => ({ player_id: p.id, x_pos: p.x_pos || 0, y_pos: p.y_pos || 0, status: p.status }));
-    await updateLineup(nextMatch.id, payload, coachToken);
+    await updateLineup(nextMatch.id, payload, coachPin);
   }
 
   async function moveToBench(playerId) {
@@ -37,7 +37,7 @@ export default function Lineup({ players, nextMatch, isCoach, coachToken }) {
     setLocalLineup(updated);
     
     const payload = updated.map(p => ({ player_id: p.id, x_pos: p.x_pos || 0, y_pos: p.y_pos || 0, status: p.status }));
-    await updateLineup(nextMatch.id, payload, coachToken);
+    await updateLineup(nextMatch.id, payload, coachPin);
   }
 
   return (
