@@ -80,10 +80,19 @@ if (!existingPin) {
 
 export default db;
 
-// ─── Seed inicial de jugadores ────────────────────────────────────────────
-// Solo corre si la tabla está completamente vacía (primer deploy)
-const playerCount = db.prepare('SELECT COUNT(*) as c FROM players').get();
-if (playerCount.c === 0) {
+// ─── Seed de jugadores versionado ────────────────────────────────────────
+// Corre si no existe el flag seed_v2 en settings.
+// Limpia jugadores, partidos, asistencia y lineup antes de insertar.
+const alreadySeeded = db.prepare(`SELECT value FROM settings WHERE key = 'seed_v2'`).get();
+if (!alreadySeeded) {
+  db.prepare('DELETE FROM lineup').run();
+  db.prepare('DELETE FROM attendance').run();
+  db.prepare('DELETE FROM matches').run();
+  db.prepare('DELETE FROM players').run();
+  // Reset autoincrement
+  db.prepare(`DELETE FROM sqlite_sequence WHERE name IN ('players','matches','attendance','lineup')`).run();
+}
+if (!alreadySeeded) {
   const seedPlayers = [
     { first_name: 'Erik',   last_name: 'Ramírez', position: 'MC',  jersey_number: 1  },
     { first_name: 'Marte',  last_name: '',         position: 'DC',  jersey_number: 2  },
@@ -108,4 +117,6 @@ if (playerCount.c === 0) {
     }
   });
   seedTx(seedPlayers);
+  // Marcar seed como completado para no repetir
+  db.prepare(`INSERT OR REPLACE INTO settings (key, value) VALUES ('seed_v2', 'done')`).run();
 }
