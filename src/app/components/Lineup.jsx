@@ -31,9 +31,8 @@ function PlayerAvatar({ player, size = 40 }) {
       <img
         src={player.photo_url}
         alt={player.first_name}
-        draggable={false}
         onError={() => setImgError(true)}
-        style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', display: 'block', border: '2px solid rgba(255,255,255,0.8)', flexShrink: 0, WebkitUserDrag: 'none' }}
+        style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', display: 'block', border: '2px solid rgba(255,255,255,0.8)', flexShrink: 0 }}
       />
     );
   }
@@ -189,7 +188,6 @@ export default function Lineup({ players, nextMatch, isCoach, coachPin }) {
           {fieldPlayers.map(p => (
             <div
               key={p.id}
-              draggable={false}
               onPointerDown={e => onPlayerPointerDown(e, p.id)}
               onDoubleClick={() => moveToBench(p.id)}
               style={{
@@ -202,7 +200,6 @@ export default function Lineup({ players, nextMatch, isCoach, coachPin }) {
                 zIndex: 10,
                 filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.7))',
                 WebkitUserSelect: 'none', userSelect: 'none',
-                WebkitUserDrag: 'none',
               }}
               title={isCoach ? 'Arrastra para mover • 2× click → banca' : `${p.first_name} ${p.last_name}`}
             >
