@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: escarabajos-franco
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /data/database.sqlite
+    disk:
+      name: sqlite-data
+      mountPath: /data
+      sizeGB: 1
