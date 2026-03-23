@@ -156,10 +156,8 @@ export default function Lineup({ players, nextMatch, isCoach, coachPin }) {
         </span>
       </div>
 
-      <div className="grid-2" style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)' }}>
-
-        {/* ── PITCH ─────────────────────────────────────────────────── */}
-        <div
+      {/* Pitch a ancho completo */}
+      <div
           ref={pitchRef}
           onPointerMove={onPitchPointerMove}
           onPointerUp={onPitchPointerUp}
@@ -167,9 +165,10 @@ export default function Lineup({ players, nextMatch, isCoach, coachPin }) {
           style={{
             background: 'linear-gradient(180deg, #1a6b1a 0%, #1e7a1e 50%, #1a6b1a 100%)',
             position: 'relative', borderRadius: '8px', overflow: 'hidden',
-            aspectRatio: '2/3', width: '100%',
+            aspectRatio: '3/4', width: '100%',
             border: '3px solid rgba(255,255,255,0.6)',
-            userSelect: 'none', touchAction: 'none', cursor: 'default'
+            userSelect: 'none', touchAction: 'none', cursor: 'default',
+            marginBottom: '16px'
           }}
         >
           {/* SVG líneas */}
@@ -225,51 +224,46 @@ export default function Lineup({ players, nextMatch, isCoach, coachPin }) {
           )}
         </div>
 
-        {/* ── BANCA ─────────────────────────────────────────────────── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <h4 style={{ margin: '0 0 8px', color: 'var(--text-secondary)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            Banca ({benchPlayers.length})
-          </h4>
+      {/* ── BANCA — tira horizontal ───────────────────────────────── */}
+      <div>
+        <h4 style={{ margin: '0 0 8px', color: 'var(--text-secondary)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+          Banca ({benchPlayers.length})
+          {isCoach && fieldCount > 0 && <span style={{ marginLeft: '12px', fontWeight: 400, textTransform: 'none', letterSpacing: 0, fontSize: '11px' }}>💡 Arrastra en cancha · 2× toque → banca</span>}
+        </h4>
 
-          {benchPlayers.length === 0 && (
-            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-              {fieldCount >= 11 ? '✅ 11 titulares' : 'Vacía'}
-            </p>
-          )}
-
-          {benchPlayers.map(p => (
-            <button
-              key={p.id}
-              onClick={() => moveToField(p.id)}
-              disabled={!isCoach}
-              style={{
-                background: 'rgba(255,255,255,0.05)', border: '1px solid var(--surface-border)',
-                borderRadius: '8px', padding: '8px 10px',
-                cursor: isCoach ? 'pointer' : 'default',
-                display: 'flex', alignItems: 'center', gap: '8px',
-                color: '#fff', width: '100%', textAlign: 'left',
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => isCoach && (e.currentTarget.style.background = 'rgba(37,99,235,0.2)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
-            >
-              <PlayerAvatar player={p} size={32} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {p.first_name} {p.last_name}
+        {benchPlayers.length === 0 ? (
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+            {fieldCount >= 11 ? '✅ 11 titulares completos' : 'Vacía — confirma asistencia de jugadores'}
+          </p>
+        ) : (
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', WebkitOverflowScrolling: 'touch' }}>
+            {benchPlayers.map(p => (
+              <button
+                key={p.id}
+                onClick={() => moveToField(p.id)}
+                disabled={!isCoach || fieldCount >= 11}
+                style={{
+                  background: fieldCount >= 11 ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.07)',
+                  border: '1px solid var(--surface-border)',
+                  borderRadius: '10px', padding: '10px 12px',
+                  cursor: isCoach && fieldCount < 11 ? 'pointer' : 'default',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                  color: '#fff', flexShrink: 0, minWidth: '72px',
+                  opacity: fieldCount >= 11 ? 0.5 : 1,
+                  transition: 'background 0.15s, transform 0.1s',
+                }}
+                onMouseEnter={e => isCoach && fieldCount < 11 && (e.currentTarget.style.background = 'rgba(37,99,235,0.25)')}
+                onMouseLeave={e => (e.currentTarget.style.background = fieldCount >= 11 ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.07)')}
+              >
+                <PlayerAvatar player={p} size={40} />
+                <div style={{ fontSize: '11px', fontWeight: 600, textAlign: 'center', whiteSpace: 'nowrap', maxWidth: '64px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {p.first_name}
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p.position}</div>
-              </div>
-              {isCoach && (fieldCount < 11 ? <span style={{ fontSize: '14px', opacity: 0.5 }}>→</span> : <span style={{ fontSize: '12px', opacity: 0.3 }}>🔒</span>)}
-            </button>
-          ))}
-
-          {isCoach && fieldCount > 0 && (
-            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.5 }}>
-              💡 Arrastra en cancha para reposicionar.<br/>2× toque para enviar a banca.
-            </p>
-          )}
-        </div>
+                <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{p.position}</div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
